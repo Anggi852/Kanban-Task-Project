@@ -1,3 +1,24 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+
+definePageMeta({
+  layout: false,
+  middleware: 'guest',
+})
+
+useHead({ title: 'Sign in — TaskFlow' })
+
+const route = useRoute()
+
+// Definisikan dengan 'const' agar terbaca di template
+const oauthError = computed(() => route.query.error === 'oauth')
+
+function onSuccess() {
+  const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/dashboard'
+  navigateTo(redirect)
+}
+</script>
+
 <template>
   <AuthCard
     title="Welcome back"
@@ -11,7 +32,6 @@
       <span class="h-px flex-1 bg-border dark:bg-border-dark" />
     </div>
 
-    <!-- Biarkan SATU tombol Google ini tetap ada -->
     <GoogleSignInButton />
 
     <p
