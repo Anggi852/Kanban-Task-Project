@@ -1,35 +1,49 @@
 <script setup lang="ts">
 import { createClient } from '@supabase/supabase-js'
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted, computed } from 'vue'
 
 definePageMeta({
   layout: false,
   middleware: 'guest',
 })
 
-useHead({ title: 'Sign in — TaskFlow' })
+useHead({
+  title: 'Sign in — TaskFlow',
+})
 
 const route = useRoute()
 
-// Inisialisasi Supabase dengan Key kamu
 const supabaseUrl = 'https://fnbwvodblnlruzgyiguq.supabase.co'
 const supabaseKey = 'sb_publishable_tgyQKJqW8lEeaOe6dQXgFw_PsHHVDG_'
+
 const supabase = createClient(supabaseUrl, supabaseKey)
 
-// Deteksi token login dari URL dan otomatis pindah ke Dashboard
+let authListener: { subscription: { unsubscribe: () => void } } | null = null
+
 onMounted(() => {
-  supabase.auth.onAuthStateChange((event, session) => {
+  const { data } = supabase.auth.onAuthStateChange((event, session) => {
     if (session) {
       navigateTo('/dashboard')
     }
   })
+
+  authListener = data
 })
 
-// Set by the OAuth callback when Google sign-in fails (redirects to ?error=oauth).
-const oauthError = computed(() => route.query.error === 'oauth')
+onUnmounted(() => {
+  authListener?.subscription.unsubscribe()
+})
+
+const oauthError = computed(() => {
+  return route.query.error === 'oauth'
+})
 
 function onSuccess() {
-  const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/dashboard'
+  const redirect =
+    typeof route.query.redirect === 'string'
+      ? route.query.redirect
+      : '/dashboard'
+
   navigateTo(redirect)
 }
 </script>
@@ -43,7 +57,11 @@ function onSuccess() {
 
     <div class="my-6 flex items-center gap-3">
       <span class="h-px flex-1 bg-border dark:bg-border-dark" />
-      <span class="text-xs uppercase tracking-wide text-ink-muted">or</span>
+
+      <span class="text-xs uppercase tracking-wide text-ink-muted">
+        or
+      </span>
+
       <span class="h-px flex-1 bg-border dark:bg-border-dark" />
     </div>
 
@@ -59,7 +77,11 @@ function onSuccess() {
 
     <template #footer>
       Don't have an account?
-      <NuxtLink to="/register" class="text-accent font-medium hover:underline ml-1">
+
+      <NuxtLink
+        to="/register"
+        class="text-accent font-medium hover:underline ml-1"
+      >
         Create one
       </NuxtLink>
     </template>
