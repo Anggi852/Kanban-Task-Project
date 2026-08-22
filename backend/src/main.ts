@@ -29,9 +29,12 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('doc', app, documentFactory);
 
-  // 1. Buka Pintu CORS untuk Frontend Vue/Nuxt
+// 1. Buka Pintu CORS untuk Frontend Vercel dan Lokal
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: [
+      'https://kanban-task-project.vercel.app',
+      process.env.FRONTEND_URL || 'http://localhost:3000',
+    ],
     credentials: true,
   });
   
