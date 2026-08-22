@@ -8,8 +8,8 @@ export default defineConfig({
   migrations: {
     path: "prisma/migrations",
   },
-datasource: {
-    // Username-nya kita ganti jadi "postgres"
-    url: "postgresql://postgres:Anggi1234@localhost:5432/kanban_dev?schema=public",
+  datasource: {
+    // Menggunakan process.env agar otomatis membaca dari Railway / .env lokal
+    url: process.env.DATABASE_URL,
   },
 });
