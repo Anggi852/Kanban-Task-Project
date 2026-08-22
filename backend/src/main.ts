@@ -37,7 +37,8 @@ async function bootstrap() {
   
   app.use(cookieParser());
   
-  // 2. Hapus '127.0.0.1'-nya supaya localhost tidak terblokir
-  await app.listen(8001);
+// 2. Gunakan port dinamis dari Railway atau fallback ke 8001 untuk lokal
+  const port = process.env.PORT || 8001;
+  await app.listen(port, '0.0.0.0');
 }
 bootstrap();
