@@ -17,8 +17,8 @@ async function signInWithGoogle() {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      // INI YANG DIUBAH: Arahkan ke /login dulu supaya tiketnya tersimpan
-      redirectTo: `${window.location.origin}/login`
+      // Ubah dari /login menjadi langsung ke /dashboard
+      redirectTo: `${window.location.origin}/dashboard`
     }
   })
 
