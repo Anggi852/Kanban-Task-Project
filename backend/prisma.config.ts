@@ -9,7 +9,6 @@
       path: "prisma/migrations",
     },
     datasource: {
-      // Menggunakan process.env agar otomatis membaca dari Railway / .env lokal
       url: process.env.DATABASE_URL,
     },
   });
