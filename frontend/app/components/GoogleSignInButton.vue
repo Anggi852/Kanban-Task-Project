@@ -1,14 +1,31 @@
 <script setup lang="ts">
+import { createClient } from '@supabase/supabase-js'
+
 withDefaults(defineProps<{ label?: string }>(), {
   label: 'Continue with Google',
 })
 
-const config = useRuntimeConfig()
+// Karena kita menggunakan Nuxt/Vue, kita panggil Supabase secara manual
+// Masukkan URL project Supabase kamu (sudah saya sesuaikan dari data Vercel kamu)
+const supabaseUrl = 'https://fnbwvodblnlruzgyiguq.supabase.co' 
 
-// OAuth needs a full top-level browser navigation (not fetch) so the provider
-// can redirect and the backend can set the session cookie on the callback.
-function signInWithGoogle() {
-  window.location.href = `${config.public.apiBase}/auth/google`
+// Masukkan Anon Key kamu di bawah ini (bisa kamu copy dari Vercel Environment Variables
+// pada variabel NEXT_PUBLIC_SUPABASE_ANON_KEY atau SUPABASE_ANON_KEY)
+const supabaseKey = 'MASUKKAN_ANON_KEY_SUPABASE_KAMU_DISINI' 
+
+const supabase = createClient(supabaseUrl, supabaseKey)
+
+async function signInWithGoogle() {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/dashboard`
+    }
+  })
+
+  if (error) {
+    console.error("Error signing in with Google:", error.message)
+  }
 }
 </script>
 
