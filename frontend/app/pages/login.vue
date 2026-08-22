@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { createClient } from '@supabase/supabase-js'
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 
 definePageMeta({
   layout: false,
@@ -11,21 +11,20 @@ useHead({ title: 'Sign in — TaskFlow' })
 
 const route = useRoute()
 
-// Inisialisasi Supabase dengan Key kamu
+// Pakai cara standar yang didukung project kamu
 const supabaseUrl = 'https://fnbwvodblnlruzgyiguq.supabase.co'
 const supabaseKey = 'sb_publishable_tgyQKJqW8lEeaOe6dQXgFw_PsHHVDG_'
 const supabase = createClient(supabaseUrl, supabaseKey)
 
-// Deteksi token login dari URL dan otomatis pindah ke Dashboard
 onMounted(() => {
+  // Tangkap tiket dari URL, kalau sukses langsung paksa pindah ke dashboard
   supabase.auth.onAuthStateChange((event, session) => {
     if (session) {
-      navigateTo('/dashboard')
+      window.location.href = '/dashboard'
     }
   })
 })
 
-// Set by the OAuth callback when Google sign-in fails (redirects to ?error=oauth).
 const oauthError = computed(() => route.query.error === 'oauth')
 
 function onSuccess() {
