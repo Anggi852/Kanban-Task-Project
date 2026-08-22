@@ -1,4 +1,5 @@
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'dev_only_do_not_use_in_prod';
+process.env.JWT_SECRET =
+  process.env.JWT_SECRET || 'dev_only_do_not_use_in_prod';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
@@ -29,7 +30,7 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('doc', app, documentFactory);
 
-// 1. Buka Pintu CORS untuk Frontend Vercel dan Lokal
+  // 1. Buka Pintu CORS untuk Frontend Vercel dan Lokal
   app.enableCors({
     origin: [
       'https://kanban-task-project.vercel.app',
@@ -37,10 +38,10 @@ async function bootstrap() {
     ],
     credentials: true,
   });
-  
+
   app.use(cookieParser());
-  
-// 2. Gunakan port dinamis dari Railway atau fallback ke 8001 untuk lokal
+
+  // 2. Gunakan port dinamis dari Railway atau fallback ke 8001 untuk lokal
   const port = process.env.PORT || 3000;
   await app.listen(port, '0.0.0.0');
 }

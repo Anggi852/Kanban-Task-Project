@@ -24,9 +24,11 @@ describe('BoardsService', () => {
       const arg = prisma.board.create.mock.calls[0][0];
       expect(arg.data).toMatchObject({ name: 'My board', userId: 'u1' });
       expect(arg.data.columns.create).toHaveLength(3);
-      expect(
-        arg.data.columns.create.map((c: any) => c.type),
-      ).toEqual(['TODO', 'IN_PROGRESS', 'DONE']);
+      expect(arg.data.columns.create.map((c: any) => c.type)).toEqual([
+        'TODO',
+        'IN_PROGRESS',
+        'DONE',
+      ]);
     });
   });
 

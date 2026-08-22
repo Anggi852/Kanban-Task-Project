@@ -7,7 +7,8 @@ export class PrismaService extends PrismaClient {
   constructor() {
     const adapter = new PrismaPg({
       // KITA GANTI BARIS INI SEMENTARA:
-      connectionString: "postgresql://postgres:Anggi1234@localhost:5432/kanban_dev?schema=public",
+      connectionString:
+        'postgresql://postgres:Anggi1234@localhost:5432/kanban_dev?schema=public',
     });
     super({ adapter });
   }

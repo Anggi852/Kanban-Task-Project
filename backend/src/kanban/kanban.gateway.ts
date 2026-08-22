@@ -34,7 +34,7 @@ export class KanbanGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('geserTask')
   handleGeserTask(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
     console.log('Data task yang digeser/diubah:', data);
-    
+
     // Broadcast pesan ke tab lain
     client.broadcast.emit('geserTask', data);
   }
@@ -43,7 +43,7 @@ export class KanbanGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('tugasBaru')
   handleTugasBaru(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
     console.log('Ada tugas baru dibuat:', data);
-    
+
     // Broadcast pesan ke tab lain
     client.broadcast.emit('tugasBaru', data);
   }

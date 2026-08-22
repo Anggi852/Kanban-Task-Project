@@ -80,7 +80,9 @@ export class PriorityEscalationService {
       return changed;
     } catch (error) {
       const err = error as Error;
-      this.logger.warn(`Skipping priority escalation due to database connection issue: ${err.message}`);
+      this.logger.warn(
+        `Skipping priority escalation due to database connection issue: ${err.message}`,
+      );
       return 0;
     }
   }

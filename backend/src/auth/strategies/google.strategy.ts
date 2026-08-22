@@ -14,7 +14,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       // Masukkan langsung kunci OAuth agar dijamin terbaca oleh NestJS
       clientID: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:8001/auth/google/callback',
+      callbackURL:
+        process.env.GOOGLE_CALLBACK_URL ||
+        'http://localhost:8001/auth/google/callback',
       scope: ['email', 'profile'],
     });
   }
