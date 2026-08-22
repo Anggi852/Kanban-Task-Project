@@ -1,0 +1,22 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Local-dev overrides — auto-loaded by `docker compose` on top of compose.yml.
+#
+# Port 80 on Windows is frequently held by IIS / World Wide Web Publishing
+# Service / Hyper-V, so we bind nginx to 8080 here instead. Override by
+# setting HTTP_PORT in .env, or disable this file entirely for production:
+#
+#   docker compose -f compose.yml up        # ignores this override
+#
+# To make the override permanently inactive without deleting it, rename:
+#   mv compose.override.yml compose.override.yml.disabled
+#
+# NOTE on OAuth: Google OAuth callback URLs must match what is registered in
+# the Google Cloud Console exactly. If you change HTTP_PORT, you must also:
+#   1. Register http://localhost:<port>/api/auth/google/callback in Google
+#      Cloud Console → Credentials → your OAuth client.
+#   2. Update GOOGLE_CALLBACK_URL and FRONTEND_URL in .env to match.
+# ─────────────────────────────────────────────────────────────────────────────
+services:
+  nginx:
+    ports:
+      - "${HTTP_PORT:-8080}:80"

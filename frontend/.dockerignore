@@ -1,0 +1,23 @@
+# Build artifacts
+.output/
+.nuxt/
+.nitro/
+.cache/
+dist/
+
+# Dependencies (reinstalled inside the image)
+node_modules/
+
+# Secrets / local config
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# Dev tools
+public/

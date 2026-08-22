@@ -1,0 +1,25 @@
+# Build output
+dist/
+coverage/
+
+# Dependencies (reinstalled inside the image)
+node_modules/
+
+# Generated Prisma client (regenerated during Docker build)
+src/generated/
+
+# Secrets / local config
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+
+# Tests
+test/
+src/test/
+**/*.spec.ts
+
+# Git
+.git/
+.gitignore

@@ -1,0 +1,89 @@
+# ESLint scanning for the Kanban monorepo.
+#
+# Lints backend/ and frontend/ in separate steps (each has its own flat
+# ESLint config), emits SARIF for the GitHub Security tab, and uploads
+# each report under a distinct category so backend and frontend findings
+# stay separated in the UI.
+name: ESLint
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: "26 14 * * 5"
+
+jobs:
+  eslint:
+    name: Run eslint scanning
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # ── Backend ──────────────────────────────────────────────────────────
+      - name: Install backend dependencies
+        working-directory: backend
+        run: bun install --frozen-lockfile
+
+      - name: Install SARIF formatter (backend)
+        working-directory: backend
+        run: bun add -d @microsoft/eslint-formatter-sarif@3.1.0
+
+      - name: Run ESLint (backend)
+        working-directory: backend
+        continue-on-error: true
+        env:
+          SARIF_ESLINT_IGNORE_SUPPRESSED: "true"
+        run: |
+          bunx eslint "{src,test}/**/*.ts" \
+            --format @microsoft/eslint-formatter-sarif \
+            --output-file eslint-results.sarif
+
+      - name: Upload backend SARIF
+        if: hashFiles('backend/eslint-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: backend/eslint-results.sarif
+          category: backend-eslint
+          wait-for-processing: true
+
+      # ── Frontend ─────────────────────────────────────────────────────────
+      # `bun install` runs postinstall (`nuxt prepare`), which generates
+      # .nuxt/eslint.config.mjs — the frontend flat config imports it.
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: bun install --frozen-lockfile
+
+      - name: Install SARIF formatter (frontend)
+        working-directory: frontend
+        run: bun add -d @microsoft/eslint-formatter-sarif@3.1.0
+
+      - name: Run ESLint (frontend)
+        working-directory: frontend
+        continue-on-error: true
+        env:
+          SARIF_ESLINT_IGNORE_SUPPRESSED: "true"
+        run: |
+          bunx eslint . \
+            --format @microsoft/eslint-formatter-sarif \
+            --output-file eslint-results.sarif
+
+      - name: Upload frontend SARIF
+        if: hashFiles('frontend/eslint-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: frontend/eslint-results.sarif
+          category: frontend-eslint
+          wait-for-processing: true

@@ -1,0 +1,112 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Development stack — Docker OR Podman compatible.
+#
+# Usage:
+#   cp .env.dev .env.development       # first time only
+#   docker compose --env-file .env.development -f compose.dev.yml up
+#   podman compose --env-file .env.development -f compose.dev.yml up
+#
+# Notes:
+# • Source is bind-mounted from ./backend and ./frontend so Neovim edits on
+#   the host trigger hot reload inside the container.
+# • `:z` on bind mounts is the shared-SELinux label — Podman needs it on
+#   Fedora/RHEL hosts, Docker silently ignores it. Safe on both.
+# • `node_modules` is an anonymous volume so the container's Linux
+#   node_modules is never overwritten by the host's (which may be Windows
+#   or missing entirely).
+# • No `container_name` here — lets you run this stack alongside the prod
+#   compose without name collisions.
+# • Postgres uses a SEPARATE named volume (postgres_dev_data) and DB name
+#   from the prod compose file. Same image, isolated data.
+# ─────────────────────────────────────────────────────────────────────────────
+services:
+  # ── PostgreSQL (dev) ────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-kanban}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kanban_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-kanban_dev}
+    ports:
+      # Exposed to host so you can attach DBeaver / psql / Prisma Studio.
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - kanban_dev_net
+
+  # ── NestJS backend (watch mode) ─────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+      - "9229:9229"                 # node --inspect for debugger attach
+    environment:
+      NODE_ENV: development
+      PORT: 8000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-kanban}:${POSTGRES_PASSWORD:-kanban_dev_password}@postgres:5432/${POSTGRES_DB:-kanban_dev}?schema=public
+      JWT_SECRET: ${JWT_SECRET:-dev_only_do_not_use_in_prod}
+      SALT_ROUND: ${SALT_ROUND:-10}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-http://localhost:8000/auth/google/callback}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      # File watchers need polling on Windows/WSL and some Podman setups.
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "500"
+    volumes:
+      - ./backend:/app:z
+      # Anonymous volumes shadow the host dirs so the container keeps its
+      # own Linux-built node_modules and Prisma client.
+      - /app/node_modules
+      - /app/dist
+      - /app/src/generated
+    networks:
+      - kanban_dev_net
+
+  # ── Nuxt frontend (HMR) ─────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+      - "24678:24678"               # Vite HMR websocket
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      # SSR calls to the backend go over the compose network.
+      NUXT_API_BASE: http://backend:8000
+      # Browser calls hit the host-exposed backend port directly.
+      NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-http://localhost:8000}
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "500"
+    volumes:
+      - ./frontend:/app:z
+      - /app/node_modules
+      - /app/.nuxt
+      - /app/.output
+    networks:
+      - kanban_dev_net
+
+networks:
+  kanban_dev_net:
+    driver: bridge
+
+volumes:
+  postgres_dev_data:

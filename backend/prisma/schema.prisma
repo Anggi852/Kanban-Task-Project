@@ -1,0 +1,146 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+// Marks a column's semantic role — used for analytics (completion rate, trend)
+// without depending on column names.
+enum ColumnType {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum ActivityAction {
+  TASK_CREATED
+  TASK_UPDATED
+  TASK_MOVED
+  TASK_DELETED
+  TASK_REORDERED
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  // Null for accounts created via an OAuth provider (e.g. Google), which have
+  // no local password.
+  password  String?
+  name      String?
+  // OAuth / identity provider fields.
+  provider  String   @default("local") // "local" | "google"
+  googleId  String?  @unique
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  refreshTokens RefreshToken[]
+  boards        Board[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  token     String   @unique
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ip        String
+  device    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model Board {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  columns    Column[]
+  activities Activity[]
+
+  @@index([userId])
+  @@map("boards")
+}
+
+model Column {
+  id       String     @id @default(uuid()) @db.Uuid
+  name     String
+  position Int
+  type     ColumnType @default(TODO)
+
+  boardId String @db.Uuid
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  tasks Task[]
+
+  @@index([boardId])
+  @@map("columns")
+}
+
+model Task {
+  id          String       @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  // Effective priority shown to the user — may be auto-raised as the deadline
+  // approaches (see basePriority + the deadline-escalation job).
+  priority    TaskPriority @default(MEDIUM)
+  // The priority the user set manually. Auto-escalation never lowers `priority`
+  // below this, and the gap (priority > basePriority) flags an auto-raise.
+  basePriority TaskPriority @default(MEDIUM)
+  position    Int
+  dueDate     DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  columnId String @db.Uuid
+  column   Column @relation(fields: [columnId], references: [id], onDelete: Cascade)
+
+  activities Activity[]
+
+  @@index([columnId])
+  @@index([dueDate])
+  @@map("tasks")
+}
+
+// Stores metadata as JSON to support flexible payloads per action type.
+// e.g. TASK_MOVED → { fromColumnId, toColumnId, fromPosition, toPosition }
+model Activity {
+  id        String         @id @default(uuid()) @db.Uuid
+  action    ActivityAction
+  metadata  Json?
+  createdAt DateTime       @default(now())
+
+  boardId String @db.Uuid
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  taskId String? @db.Uuid
+  task   Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([boardId])
+  @@index([taskId])
+  @@map("activities")
+}

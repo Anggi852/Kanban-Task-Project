@@ -1,0 +1,26 @@
+# ─── Dev image: Nuxt 4 with HMR ──────────────────────────────────────────────
+# Source is bind-mounted from the host at runtime (see compose.dev.yml).
+FROM oven/bun:1-alpine
+
+WORKDIR /app
+
+RUN apk add --no-cache tini
+
+# Warm the node_modules cache inside the image. compose.dev.yml mounts an
+# anonymous volume over /app/node_modules so the host bind-mount can't
+# overwrite it (and Windows/host node_modules stays isolated from Linux).
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
+
+ENV NODE_ENV=development \
+    HOST=0.0.0.0 \
+    PORT=3000 \
+    # Nuxt/Vite polling — required on Windows-mounted volumes and on some
+    # Podman/WSL setups where inotify events don't cross the FS boundary.
+    CHOKIDAR_USEPOLLING=true \
+    CHOKIDAR_INTERVAL=500
+
+EXPOSE 3000 24678
+
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["bun", "run", "dev", "--", "--host", "0.0.0.0"]

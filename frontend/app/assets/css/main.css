@@ -1,0 +1,145 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Geist:wght@300..700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Geist', system-ui, sans-serif;
+    font-feature-settings: 'ss01', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-canvas text-ink antialiased;
+    @apply dark:bg-canvas-dark dark:text-ink-dark;
+    font-feature-settings: 'ss01';
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-optical-sizing: auto;
+    letter-spacing: -0.018em;
+  }
+
+  /* Display-tuned cut only kicks in at genuinely display sizes */
+  h1,
+  .font-display.text-2xl,
+  .font-display.text-3xl,
+  .font-display.text-4xl,
+  .font-display.text-5xl,
+  .font-display.text-6xl,
+  .font-display.text-7xl {
+    font-variation-settings: 'opsz' 96;
+    letter-spacing: -0.022em;
+  }
+
+  /* Tabular figures everywhere numbers carry meaning */
+  .tabular,
+  time,
+  [data-numeric] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    @apply outline-none;
+    box-shadow: 0 0 0 2px theme('colors.canvas.DEFAULT'), 0 0 0 4px theme('colors.accent.DEFAULT');
+  }
+
+  .dark :focus-visible {
+    box-shadow: 0 0 0 2px theme('colors.canvas.dark'), 0 0 0 4px theme('colors.accent.ink');
+  }
+
+  ::selection {
+    @apply bg-accent/25 text-ink dark:text-ink-dark;
+  }
+}
+
+@layer components {
+  /* Editorial signature: italic Fraunces emphasis */
+  .display-em {
+    font-style: italic;
+    font-variation-settings: 'opsz' 144, 'SOFT' 50;
+    color: theme('colors.accent.DEFAULT');
+  }
+  .dark .display-em {
+    color: theme('colors.accent.ink');
+  }
+
+  /* Tiny tracked label, like an editorial section marker */
+  .eyebrow {
+    font-family: 'Geist', system-ui, sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: theme('colors.ink.muted');
+  }
+
+  /* Subtle parchment grain that catches light without screaming */
+  .grain {
+    position: relative;
+    isolation: isolate;
+  }
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.35;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.10  0 0 0 0 0.09  0 0 0 0 0.08  0 0 0 0.06 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+  .dark .grain::after {
+    mix-blend-mode: screen;
+    opacity: 0.18;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.95  0 0 0 0 0.92  0 0 0 0 0.85  0 0 0 0.06 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  /* Soft animated rule used under page titles */
+  .rule {
+    height: 1px;
+    background: linear-gradient(to right, theme('colors.border.DEFAULT'), transparent 60%);
+  }
+  .dark .rule {
+    background: linear-gradient(to right, theme('colors.border.dark'), transparent 60%);
+  }
+}
+
+@layer utilities {
+  @keyframes rise-in {
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .stagger > * {
+    opacity: 0;
+    animation: rise-in 700ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .stagger > *:nth-child(1) { animation-delay: 40ms; }
+  .stagger > *:nth-child(2) { animation-delay: 120ms; }
+  .stagger > *:nth-child(3) { animation-delay: 200ms; }
+  .stagger > *:nth-child(4) { animation-delay: 280ms; }
+  .stagger > *:nth-child(5) { animation-delay: 360ms; }
+  .stagger > *:nth-child(6) { animation-delay: 440ms; }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-border dark:bg-border-dark rounded-full;
+  }
+}
