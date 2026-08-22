@@ -1,9 +1,5 @@
-/**
- * Lightweight typed-ish mock of PrismaService for unit tests. Every model
- * method is a jest.fn(), and `$transaction` supports both forms the codebase
- * uses: callback (`$transaction(async (tx) => …)`, where `tx` is this same
- * mock) and array (`$transaction([…])`).
- */
+import { jest } from '@jest/globals';
+
 function modelMock() {
   return {
     findUnique: jest.fn(),
@@ -19,24 +15,27 @@ function modelMock() {
 }
 
 export function createPrismaMock() {
-  const prisma = {
+  const models = {
     user: modelMock(),
     board: modelMock(),
     column: modelMock(),
     task: modelMock(),
     activity: modelMock(),
     refreshToken: modelMock(),
-  } as Record<string, ReturnType<typeof modelMock>> & {
-    $transaction: jest.Mock;
   };
 
-  prisma.$transaction = jest.fn((arg: unknown) =>
-    typeof arg === 'function'
-      ? (arg as (tx: typeof prisma) => unknown)(prisma)
-      : Promise.all(arg as unknown[]),
-  );
+  const prisma = {
+    ...models,
+    $transaction: jest.fn((arg: unknown) =>
+      typeof arg === 'function'
+        ? (arg as (tx: typeof prisma) => unknown)(prisma)
+        : Promise.all(arg as unknown[]),
+    ),
+  };
 
-  return prisma;
+  return prisma as unknown as typeof models & {
+    $transaction: jest.Mock;
+  };
 }
 
 export type PrismaMock = ReturnType<typeof createPrismaMock>;
