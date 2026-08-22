@@ -5,13 +5,11 @@ withDefaults(defineProps<{ label?: string }>(), {
   label: 'Continue with Google',
 })
 
-// Karena kita menggunakan Nuxt/Vue, kita panggil Supabase secara manual
-// Masukkan URL project Supabase kamu (sudah saya sesuaikan dari data Vercel kamu)
+// Masukkan URL project Supabase kamu
 const supabaseUrl = 'https://fnbwvodblnlruzgyiguq.supabase.co' 
 
-// Masukkan Anon Key kamu di bawah ini (bisa kamu copy dari Vercel Environment Variables
-// pada variabel NEXT_PUBLIC_SUPABASE_ANON_KEY atau SUPABASE_ANON_KEY)
-const supabaseKey = 'MASUKKAN_ANON_KEY_SUPABASE_KAMU_DISINI' 
+// MASUKKAN ANON KEY KAMU DI SINI (JANGAN LUPA DIISI YA!)
+const supabaseKey = 'sb_publishable_tgyQKJqW8lEeaOe6dQXgFw_PsHHVDG_' 
 
 const supabase = createClient(supabaseUrl, supabaseKey)
 
@@ -19,7 +17,8 @@ async function signInWithGoogle() {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/dashboard`
+      // INI YANG DIUBAH: Arahkan ke /login dulu supaya tiketnya tersimpan
+      redirectTo: `${window.location.origin}/login`
     }
   })
 
