@@ -1,4 +1,4 @@
-process.env.JWT_SECRET = 'dev_only_do_not_use_in_prod';
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'dev_only_do_not_use_in_prod';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
