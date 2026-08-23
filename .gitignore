@@ -2,3 +2,7 @@
 .env.development
 .env.local
 nginx/ssl/
+.env
+.env.*
+!.env.example
+.env.docker
